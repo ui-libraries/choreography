@@ -1,10 +1,4 @@
 const player = videojs('example_video_1')
-let videoOrder = []
-
-player.on('playlistchange', function() {
-  videojs.log('It changed!!');
-  console.log(player.playlist())
-})
 
 let videoClips = {
   "dance1": {
@@ -37,47 +31,30 @@ let videoClips = {
   }
 }
 
-
-let list = [videoClips['dance1'], videoClips['dance2'], videoClips['dance3'], videoClips['dance4']]
-
-player.playlist(list)
-
-// Play through the playlist automatically.
-player.playlist.autoadvance(0)
-
-
-function createPlaylistFromLayout(layout) {
-  let playlist
-  
-  layout.forEach((item) => {
-    playlist.push(danceList[item])
-  })
-
-  return playlist
-}
-
 initGrid()
 
 function initGrid() {
-  var grid = new Muuri('.grid', {
+  let grid = new Muuri('.grid', {
     dragEnabled: true,
-    layoutOnInit: false
+    layoutOnInit: true
   }).on('move', function () {
     saveLayout(grid)
   })
 
-  var layout = window.localStorage.getItem('layout')
+  let layout = window.localStorage.getItem('layout')
   if (layout) {
     loadLayout(grid, layout)
+    saveLayout(grid)
   } else {
     grid.layout(true)
+    saveLayout(grid)
   }
 }
 
 function serializeLayout(grid) {
   //console.log(typeof(grid.getItems()))
 
-  var itemIds = grid.getItems().map(function (item) {
+  let itemIds = grid.getItems().map(function (item) {
     return item.getElement().getAttribute('data-id')
   })
 
@@ -95,33 +72,36 @@ function layoutToList(grid) {
 }
 
 function saveLayout(grid) {
+  videoOrder = []
   let layout = serializeLayout(grid)
   let videoList = layoutToList(grid)
 
   videoList.forEach((item) => {    
     videoOrder.push(videoClips[item])
   })
-
+  
+  //clear the playlist before setting it. Every. Time.
+  player.playlist([])
   player.playlist(videoOrder)
-
-// Play through the playlist automatically.
+  
+  // Play through the playlist automatically.
   player.playlist.autoadvance(0)
   window.localStorage.setItem('layout', layout)
 }
 
 function loadLayout(grid, serializedLayout) {
-  var layout = JSON.parse(serializedLayout)
-  var currentItems = grid.getItems()
-  var currentItemIds = currentItems.map(function (item) {
+  let layout = JSON.parse(serializedLayout)
+  let currentItems = grid.getItems()
+  let currentItemIds = currentItems.map(function (item) {
     return item.getElement().getAttribute('data-id')
   })
-  var newItems = [];
-  var itemId
-  var itemIndex
+  let newItems = []
+  let itemId
+  let itemIndex
 
-  for (var i = 0; i < layout.length; i++) {
+  for (let i = 0; i < layout.length; i++) {
     itemId = layout[i]
-    itemIndex = currentItemIds.indexOf(itemId);
+    itemIndex = currentItemIds.indexOf(itemId)
     if (itemIndex > -1) {
       newItems.push(currentItems[itemIndex])
     }
